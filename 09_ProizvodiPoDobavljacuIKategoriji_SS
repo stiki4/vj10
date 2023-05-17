@@ -1,0 +1,156 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _09_ProizvodiPoDobavljacuIKategoriji_SS
+{
+    public partial class Products : Form
+    {
+        public Products()
+        {
+            InitializeComponent();
+        }
+
+
+
+        private void btnSupplier_Click(object sender, EventArgs e)
+        {
+            FrmChooseSupplier formSupplier = new FrmChooseSupplier();
+            formSupplier.ShowDialog();
+            tbSupplierID.Text = formSupplier.SupplierID;
+        }
+
+        private void btnCategory_Click(object sender, EventArgs e)
+        {
+            FrmChooseCategory formCategory = new FrmChooseCategory();
+            formCategory.ShowDialog();
+            tbCategoryID.Text = formCategory.CategoryID;
+        }
+
+        private void btnDisplay_Click(object sender, EventArgs e)
+        {
+            int supplierId = int.Parse(tbSupplierID.Text);
+            int categoryId = int.Parse(tbCategoryID.Text);
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from p in context.Products
+                            from c in context.Categories
+                            from s in context.Suppliers
+                            where p.SupplierID == supplierId && c.CategoryID == categoryId && s.SupplierID == supplierId && c.CategoryID == categoryId
+                            orderby p.ProductName
+                            select new
+                            {
+                                p.ProductID,
+                                p.ProductName,
+                                c.CategoryName,
+                                s.CompanyName
+                            };
+                dgvProductList.DataSource = query.ToList();
+            }
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _09_ProizvodiPoDobavljacuIKategoriji_SS
+{
+    public partial class FrmChooseSupplier : Form
+    {
+        public string SupplierID;
+        public FrmChooseSupplier()
+        {
+            InitializeComponent();
+        }
+
+        private void FrmChooseSupplier_Load(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from s in context.Suppliers
+                            select new 
+                            {
+                                s.SupplierID,
+                                s.CompanyName,
+                                s.Country,
+                                s.City
+                            };
+                dgvChooseSupplier.DataSource = query.ToList();
+            }
+        }
+
+        private void btnOKSupplier_Click(object sender, EventArgs e)
+        {
+            SupplierID = dgvChooseSupplier.CurrentRow.Cells[0].Value.ToString();
+            Close();
+        }
+
+        private void btnCancelSupplier_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _09_ProizvodiPoDobavljacuIKategoriji_SS
+{
+    public partial class FrmChooseCategory : Form
+    {
+        public string CategoryID;
+        public FrmChooseCategory()
+        {
+            InitializeComponent();
+        }
+
+        private void FrmChooseCategory_Load(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from c in context.Categories
+                            select new
+                            {
+                                c.CategoryID,
+                                c.CategoryName
+                            };
+                dgvChooseCategory.DataSource = query.ToList();
+            }
+        }
+
+        private void btnOKCategory_Click(object sender, EventArgs e)
+        {
+            CategoryID = dgvChooseCategory.CurrentRow.Cells[0].Value.ToString();
+            Close();
+        }
+
+        private void btnCancelCategory_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+    }
+}
