@@ -1,0 +1,67 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _05_Zemlja_dobavljaca_SS
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from s in context.Suppliers
+                            select s.Country;
+                cbCountry.DataSource = query.Distinct().ToList();
+            }
+        }
+
+        private void btnFilter_Click(object sender, EventArgs e)
+        {
+            string name = tbCompanyName.Text;
+            using (var context = new NorthwindEntities())
+            {
+                var query = from s in context.Suppliers
+                            where s.CompanyName.Contains(name)
+                            select s;
+                dgvSuppliers.DataSource = query.ToList();
+            }
+        }
+
+        private void btnSuppliersForCountry_Click(object sender, EventArgs e)
+        {
+            string odabran = cbCountry.SelectedItem.ToString();
+
+            using (var context = new NorthwindEntities()) 
+            {
+                var query = from s in context.Suppliers
+                            where s.Country == odabran
+                            select s;
+                dgvSuppliers.DataSource = query.ToList();
+            }
+        }
+
+        private void btnAllSuppliers_Click(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities()) 
+            {
+                var query = from s in context.Suppliers
+                            orderby s.CompanyName
+                            select s;
+                dgvSuppliers.DataSource = query.ToList();
+
+            }
+        }
+    }
+}
