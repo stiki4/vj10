@@ -1,0 +1,83 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _3_Starost_zaposlenika
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            using(var context = new Entities())
+            {
+                var query = from t in context.Territories.Include("Employees")
+                            select t;
+
+                dgvTeritorries.DataSource = query.ToList();
+            }
+        }
+
+        private void dgvTeritorries_SelectionChanged(object sender, EventArgs e)
+        {
+            Territory odabrani = dgvTeritorries.CurrentRow.DataBoundItem as Territory;
+
+            using (var context = new Entities())
+            { 
+                dgvEmployees.DataSource = odabrani.Employees.ToList();
+            }
+            IzracunajStarost(odabrani);
+        }
+
+        public void IzracunajStarost(Territory territory)
+        {
+            double broj = 0;
+            int brojOsoba = 0;
+
+            foreach (var item in territory.Employees)
+            {
+                double brojGodina = DateTime.Now.Subtract(DateTime.Parse(item.BirthDate.ToString())).TotalDays / 365;
+                broj += brojGodina;
+                brojOsoba++;
+            }
+            broj = broj / brojOsoba;
+
+            _ = MessageBox.Show("Prosjecna starost svih zaposlenika je: " + broj.ToString() + " godina.");
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            string naziv = textBox1.Text;
+
+            using (var context = new Entities())
+            {
+                var query = from emp in context.Employees
+                            where emp.Country.Contains(naziv)
+                            select emp;
+
+                dgvEmployees.DataSource = query.ToList();
+            }
+        }
+
+        private void btnPrikaziSveEmployee_Click(object sender, EventArgs e)
+        {
+            using (var context = new Entities())
+            {
+                var query = from emp in context.Employees
+                            select emp;
+
+                dgvEmployees.DataSource = query.ToList();
+            }
+        }
+    }
+}
