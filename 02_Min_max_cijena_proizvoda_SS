@@ -1,0 +1,114 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _02_Min_max_cijena_proizvoda_SS
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void btnPretrazi_Click(object sender, EventArgs e)
+        {
+            int minCijena = 0;
+            int maxCijena = 1000000;
+            string naziv = tbNaziv.Text;
+
+            using (var context = new NorthwindEntities())
+            {
+                if(tbMin.Text.Length != 0)
+                {
+                    minCijena = int.Parse(tbMin.Text);
+                }
+                if(tbMax.Text.Length != 0)
+                {
+                    maxCijena = int.Parse(tbMax.Text);
+                }
+                var query = from p in context.Products.Include("Supplier")
+                            where p.ProductName.Contains(naziv) && p.UnitPrice >= minCijena && p.UnitPrice <= maxCijena
+                            select new ProductView
+                            {
+                                Id = p.ProductID,
+                                Name = p.ProductName,
+                                Quantity = p.QuantityPerUnit,
+                                Price = p.UnitPrice,
+                                InStock = p.UnitsInStock,
+                                OnOrder = p.UnitsOnOrder
+                            };
+                dgvProizvodi.DataSource = query.ToList();
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from s in context.Suppliers.Include("Products")
+                            select s;
+
+                cbDobavljac.DataSource = query.ToList();
+            }
+
+        }
+
+        private void cbDobavljac_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Supplier odabran = cbDobavljac.SelectedItem as Supplier;
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from p in context.Products.Include("Supplier")
+                            where odabran.SupplierID == p.SupplierID
+                            orderby p.ProductName descending
+                            select p;
+
+                dgvProizvodi.DataSource = query.ToList();
+            }
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace _02_Min_max_cijena_proizvoda_SS
+{
+    public partial class Supplier
+    {
+        public override string ToString()
+        {
+            return CompanyName;
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace _02_Min_max_cijena_proizvoda_SS
+{
+    public class ProductView
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Quantity { get; set; }
+        public decimal? Price { get; set; }
+        public short? InStock { get; set; }
+        public short? OnOrder { get; set; }
+    }
+}
