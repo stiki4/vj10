@@ -1,0 +1,127 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _10_Dobavljaci_proizvodaSS
+{
+    public partial class Products : Form
+    {
+        public Products()
+        {
+            InitializeComponent();
+        }
+
+        private void btnChoose_Click(object sender, EventArgs e)
+        {
+            FrmChooseSupplier form = new FrmChooseSupplier();
+            form.ShowDialog();
+            tbSupplier.Text = form.ComName;
+        }
+
+        private void btnDisplayProducts_Click(object sender, EventArgs e)
+        {
+            string suppName = tbSupplier.Text;
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from s in context.Suppliers
+                            from c in context.Categories
+                            from p in context.Products
+                            where s.CompanyName == suppName && p.SupplierID == s.SupplierID && p.CategoryID == c.CategoryID
+                            select new
+                            {
+                                p.ProductID,
+                                p.ProductName,
+                                s.CompanyName,
+                                c.CategoryName
+                            };
+                dgvProductList.DataSource = query.ToList();
+            }
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.Odbc;
+using System.Drawing;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _10_Dobavljaci_proizvodaSS
+{
+    public partial class FrmChooseSupplier : Form
+    {
+        public string ComName;
+        public FrmChooseSupplier()
+        {
+            InitializeComponent();
+        }
+
+        private void FrmChooseSupplier_Load(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from s in context.Suppliers
+                            select s.City;
+                cbCity.DataSource = query.Distinct().ToList();
+            }
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void btnOK_Click(object sender, EventArgs e)
+        {
+            ComName = dgvSuppliers.CurrentRow.Cells[1].Value.ToString();
+            Close();
+        }
+
+        private void cbCity_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string odabrani = cbCity.SelectedItem.ToString();
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from s in context.Suppliers
+                            where s.City == odabrani
+                            select new ChooseSupplierView
+                            {
+                                ID = s.SupplierID,
+                                CompanyName = s.CompanyName
+                            };
+                dgvSuppliers.DataSource = query.ToList();
+            }
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace _10_Dobavljaci_proizvodaSS
+{
+    public class ChooseSupplierView
+    {
+        public int ID { get; set; }
+        public string CompanyName { get; set; }
+    }
+}
