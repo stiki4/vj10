@@ -1,0 +1,109 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _01_Prijevoznici_i_kupci_narudzbi_SS
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from s in context.Shippers
+                            select s;
+
+                cbShipper.DataSource = query.ToList();
+            }
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from c in context.Customers
+                            select c;
+
+                cbCustomer.DataSource = query.ToList();
+            }
+        }
+        
+        private void btnFilter_Click(object sender, EventArgs e)
+        {
+            Customer odabraniC = cbCustomer.SelectedItem as Customer;
+            Shipper odabraniS = cbShipper.SelectedItem as Shipper;
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from o in context.Orders.Include("Customer").Include("Shipper").Include("Order_Details")
+                            where o.ShipVia == odabraniS.ShipperID && o.CustomerID == odabraniC.CustomerID
+                            select o;
+
+                dgvOrders.DataSource = query.ToList();
+            }
+        }
+
+        private void btnPrikaziSve_Click(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from o in context.Orders.Include("Customer").Include("Shipper").Include("Order_Details")
+                            select o;
+
+                dgvOrders.DataSource = query.ToList();
+            }
+        }
+
+        private void dgvOrders_SelectionChanged(object sender, EventArgs e)
+        {
+            Order odabrani = dgvOrders.CurrentRow.DataBoundItem as Order;
+
+            using (var context = new NorthwindEntities())
+            {
+                dgvOrderDetails.DataSource = odabrani.Order_Details.ToList();
+            }
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace _01_Prijevoznici_i_kupci_narudzbi_SS
+{
+    public partial class Shipper
+    {
+        public override string ToString()
+        {
+            return this.CompanyName;
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace _01_Prijevoznici_i_kupci_narudzbi_SS
+{
+    public partial class Customer
+    {
+        public override string ToString()
+        {
+            return this.ContactName;
+        }
+    }
+}
