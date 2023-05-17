@@ -1,0 +1,91 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace _06_Mjesto_i_naziv_pod_SS
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from c in context.Customers
+                            orderby c.CompanyName 
+                            select c;
+                dgvCustomers.DataSource = query.ToList();
+            }
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from c in context.Customers
+                            select c.Country;
+
+                cbCountry.DataSource = query.Distinct().ToList();
+            }
+        }
+
+        private void btnFilter_Click(object sender, EventArgs e)
+        {
+            string odabranaDrzava = cbCountry.SelectedItem.ToString();  
+            string odabranGrad = cbCity.SelectedItem.ToString();
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from c in context.Customers
+                            where c.Country == odabranaDrzava && c.City == odabranGrad
+                            select c;
+                dgvCustomers.DataSource = query.ToList();
+            }
+        }
+
+        private void btnClearFilter_Click(object sender, EventArgs e)
+        {
+            using (var context = new NorthwindEntities())
+            {
+                var query = from c in context.Customers
+                            orderby c.CompanyName
+                            select c;
+                dgvCustomers.DataSource = query.ToList();
+            }
+        }
+
+        private void cbCountry_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string odabranaDrzava = cbCountry.SelectedItem.ToString();
+
+            using (var context = new NorthwindEntities()) 
+            {
+                var query = from c in context.Customers
+                            where c.Country == odabranaDrzava
+                            select c.City;
+                cbCity.DataSource = query.Distinct(). ToList();
+            }
+        }
+
+        private void tbSearch_TextChanged(object sender, EventArgs e)
+        {
+            string name = tbSearch.Text;
+
+            using (var context = new NorthwindEntities())
+            {
+                var query = from c in context.Customers
+                            where c.CompanyName.Contains(name) || c.ContactName.Contains(name)
+                            select c;
+                dgvCustomers.DataSource = query.ToList();
+            }
+
+        }
+    }
+}
